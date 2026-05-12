@@ -1,32 +1,97 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lizard Clicker 🦎</title>
   <style>
-    body { background: #0d1f0a; color: #aaffaa; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
-    h1 { margin: 10px 0; font-size: 2.8rem; }
+    :root {
+      --primary: #00ff88;
+      --dark: #0a1f0a;
+      --card: #1a2f1a;
+    }
+    body {
+      background: linear-gradient(135deg, #0a1f0a, #132913, #0a1f0a);
+      color: #bbffbb;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    h1 {
+      font-size: 3.2rem;
+      margin: 10px 0;
+      background: linear-gradient(90deg, #00ff88, #aaffaa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px var(--primary);
+    }
     #lizard {
-      width: 240px;
-      height: 240px;
+      width: 280px;
+      height: 280px;
       cursor: pointer;
-      transition: transform 0.1s;
-      filter: drop-shadow(0 0 25px #00ff88);
+      transition: transform 0.1s ease;
+      filter: drop-shadow(0 0 35px var(--primary));
+      image-rendering: crisp-edges;
     }
     #lizard:active { transform: scale(0.82); }
-    #score { font-size: 2.7rem; margin: 15px 0; color: #ddffdd; }
-    .shop { margin-top: 40px; max-width: 620px; margin-left: auto; margin-right: auto; }
-    .item {
-      background: #1a2f1a; margin: 12px; padding: 15px 20px; border-radius: 15px;
-      display: flex; justify-content: space-between; align-items: center; border: 1px solid #335533;
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
     }
+    .panel {
+      background: var(--card);
+      border: 2px solid #335533;
+      border-radius: 20px;
+      padding: 20px;
+      width: 380px;
+      box-shadow: 0 10px 30px rgba(0, 255, 100, 0.1);
+    }
+
+    .shop-item, .skin-item {
+      background: #223322;
+      margin: 12px 0;
+      padding: 15px;
+      border-radius: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 6px solid var(--primary);
+    }
+
     button {
-      padding: 12px 25px; background: #00cc00; color: black; font-weight: bold;
-      border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem;
+      padding: 12px 24px;
+      background: linear-gradient(#00ff88, #00cc66);
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
     }
+    button:hover { transform: translateY(-2px); }
     button:disabled { background: #334433; color: #666; cursor: not-allowed; }
-    #reset { margin-top: 30px; background: #cc0000; }
+
+    .crawling-lizard {
+      position: fixed;
+      bottom: 30px;
+      font-size: 40px;
+      animation: crawl 25s linear infinite;
+      opacity: 0.7;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes crawl {
+      0% { transform: translateX(-100px) rotate(0deg); }
+      100% { transform: translateX(calc(100vw + 100px)) rotate(10deg); }
+    }
   </style>
 </head>
 <body>
@@ -34,56 +99,76 @@
   <div id="score">0 Lizards</div>
   <img id="lizard" src="lizzard.png" alt="Lizard" onclick="clickLizard()">
 
-  <p>Klik op de hagedis!</p>
+  <div class="container">
+    <!-- Upgrades Shop -->
+    <div class="panel">
+      <h2>🛒 Upgrades</h2>
+      <div id="upgrades"></div>
+    </div>
 
-  <div class="shop">
-    <h2>Upgrades</h2>
-    <div class="item">
-      <div><strong>Baby Lizard</strong><br><small>+1 per seconde</small></div>
-      <div><span id="cost1">20</span> lizards <button onclick="buyUpgrade(1)">Koop</button></div>
+    <!-- Skin Shop -->
+    <div class="panel">
+      <h2>✨ Lizard Skins</h2>
+      <div id="skins"></div>
     </div>
-    <div class="item">
-      <div><strong>Rock Spot</strong><br><small>+6 per seconde</small></div>
-      <div><span id="cost2">100</span> lizards <button onclick="buyUpgrade(2)">Koop</button></div>
-    </div>
-    <div class="item">
-      <div><strong>Insect Farm</strong><br><small>+25 per seconde</small></div>
-      <div><span id="cost3">450</span> lizards <button onclick="buyUpgrade(3)">Koop</button></div>
+
+    <!-- Leaderboard -->
+    <div class="panel">
+      <h2>🏆 Global Leaderboard</h2>
+      <div id="leaderboard"></div>
+      <p><small>Your Best: <strong id="personalBest">0</strong></small></p>
     </div>
   </div>
 
-  <button id="reset" onclick="resetGame()">Reset Progress</button>
+  <button onclick="resetGame()" style="margin-top:30px; background:#aa0000; padding:10px 20px;">Reset Game</button>
 
-  <!-- === SFX === -->
-  <audio id="clickSound" preload="auto">
-    <source src="lizard-button.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="buySound" preload="auto">
-    <source src="https://freesound.org/data/previews/66/66928_931655-lq.mp3" type="audio/mpeg">
-  </audio>
+  <!-- SFX -->
+  <audio id="clickSound" preload="auto"><source src="lizard-button.mp3" type="audio/mpeg"></audio>
+  <audio id="buySound" preload="auto"><source src="https://freesound.org/data/previews/66/66928_931655-lq.mp3" type="audio/mpeg"></audio>
+
+  <!-- Crawling Lizards -->
+  <div class="crawling-lizard" style="left: -50px; animation-duration: 28s;">🦎</div>
+  <div class="crawling-lizard" style="left: -80px; animation-duration: 35s; animation-delay: 8s;">🦎</div>
 
   <script>
     let score = 0;
     let perSecond = 0;
+    let totalClicks = 0;
+    let personalBest = 0;
+    let currentSkin = 0;
+
+    const skins = [
+      { id:0, name:"Green Lizard",     emoji:"🦎", price:0,   src:"lizzard.png" },
+      { id:1, name:"Fire Lizard",      emoji:"🔥🦎", price:5000, src:"https://via.placeholder.com/280/FF5500/ffffff?text=Fire+Lizard" },
+      { id:2, name:"Ice Lizard",       emoji:"❄️🦎", price:12000, src:"https://via.placeholder.com/280/88ddff/000000?text=Ice+Lizard" },
+      { id:3, name:"Golden Lizard",    emoji:"✨🦎", price:35000, src:"https://via.placeholder.com/280/ffd700/000000?text=Golden" },
+      { id:4, name:"Diamond Lizard",   emoji:"💎🦎", price:100000, src:"https://via.placeholder.com/280/ffffff/00aaff?text=Diamond" }
+    ];
+
+    let upgrades = [
+      { id:1, name:"Baby Lizard",     amount:2,   cost:25,   owned:0 },
+      { id:2, name:"Rock Spot",       amount:8,   cost:150,  owned:0 },
+      { id:3, name:"Insect Farm",     amount:30,  cost:600,  owned:0 },
+      { id:4, name:"Jungle Tree",     amount:90,  cost:2500, owned:0 },
+      { id:5, name:"Lizard Trainer",  amount:280, cost:9000, owned:0 }
+    ];
 
     const clickSound = document.getElementById("clickSound");
     const buySound = document.getElementById("buySound");
 
-    const upgrades = {
-      1: { amount: 1,  cost: 20,  owned: 0 },
-      2: { amount: 6,  cost: 100, owned: 0 },
-      3: { amount: 25, cost: 450, owned: 0 }
-    };
-
     function updateScore() {
-      document.getElementById("score").textContent = Math.floor(score).toLocaleString('nl-NL') + " Lizards";
+      document.getElementById("score").textContent = Math.floor(score).toLocaleString('en-US') + " Lizards";
+      if (score > personalBest) personalBest = Math.floor(score);
+      document.getElementById("personalBest").textContent = personalBest.toLocaleString('en-US');
     }
 
     function clickLizard() {
-      score += 1;
+      score += 1 + Math.floor(currentSkin * 0.5);
+      totalClicks++;
+      
       const lizard = document.getElementById("lizard");
-      lizard.style.transform = "scale(1.28)";
-      setTimeout(() => lizard.style.transform = "scale(1)", 90);
+      lizard.style.transform = "scale(1.35)";
+      setTimeout(() => lizard.style.transform = "scale(1)", 80);
 
       clickSound.currentTime = 0;
       clickSound.play().catch(() => {});
@@ -91,65 +176,138 @@
     }
 
     function buyUpgrade(id) {
-      let up = upgrades[id];
-      if (score >= up.cost) {
-        score -= up.cost;
-        up.owned++;
-        perSecond += up.amount;
-        up.cost = Math.floor(up.cost * 1.42);
-        document.getElementById(`cost${id}`).textContent = up.cost;
+      let up = upgrades.find(u => u.id === id);
+      if (!up || score < up.cost) return;
+      
+      score -= up.cost;
+      up.owned++;
+      perSecond += up.amount;
+      up.cost = Math.floor(up.cost * 1.48);
 
-        buySound.currentTime = 0;
-        buySound.play().catch(() => {});
-
-        updateScore();
-        saveGame();
-      }
+      buySound.currentTime = 0;
+      buySound.play().catch(() => {});
+      
+      renderUpgrades();
+      updateScore();
+      saveGame();
     }
 
+    function buySkin(id) {
+      let skin = skins.find(s => s.id === id);
+      if (!skin || score < skin.price || currentSkin === id) return;
+
+      score -= skin.price;
+      currentSkin = id;
+      document.getElementById("lizard").src = skin.src;
+
+      buySound.currentTime = 0;
+      buySound.play().catch(() => {});
+      
+      renderSkins();
+      updateScore();
+      saveGame();
+    }
+
+    function renderUpgrades() {
+      let html = '';
+      upgrades.forEach(up => {
+        html += `
+          <div class="shop-item">
+            <div>
+              <strong>${up.name}</strong><br>
+              <small>+${up.amount} / sec • Owned: ${up.owned}</small>
+            </div>
+            <div>
+              <strong>${up.cost.toLocaleString('en-US')}</strong> 🦎<br>
+              <button onclick="buyUpgrade(${up.id})" ${score < up.cost ? 'disabled' : ''}>Buy</button>
+            </div>
+          </div>`;
+      });
+      document.getElementById("upgrades").innerHTML = html;
+    }
+
+    function renderSkins() {
+      let html = '';
+      skins.forEach(s => {
+        const isOwned = currentSkin === s.id;
+        html += `
+          <div class="skin-item">
+            <div style="font-size:2rem">${s.emoji}</div>
+            <div>
+              <strong>${s.name}</strong><br>
+              ${s.price === 0 ? 'Default' : s.price.toLocaleString('en-US') + ' Lizards'}
+            </div>
+            <button onclick="buySkin(${s.id})" ${isOwned ? 'disabled' : (score < s.price ? 'disabled' : '')}>
+              ${isOwned ? 'Equipped' : 'Buy'}
+            </button>
+          </div>`;
+      });
+      document.getElementById("skins").innerHTML = html;
+    }
+
+    function updateLeaderboard() {
+      const fake = [
+        {name: "ShadowScale", score: 245680},
+        {name: "DiamondReptile", score: 189450},
+        {name: "LizardGod", score: 134200},
+        {name: "GreenMachine", score: 98750},
+        {name: "You", score: personalBest}
+      ];
+      let html = '';
+      fake.sort((a,b) => b.score - a.score).forEach((p,i) => {
+        html += `<div style="display:flex;justify-content:space-between;padding:8px;background:#223322;margin:6px 0;border-radius:8px;">
+                   <span>#${i+1} ${p.name}</span><span>${p.score.toLocaleString('en-US')}</span>
+                 </div>`;
+      });
+      document.getElementById("leaderboard").innerHTML = html;
+    }
+
+    // Save & Load
     function saveGame() {
-      localStorage.setItem("lizardClickerSave", JSON.stringify({
-        score, 
-        upgrades, 
+      localStorage.setItem("lizardClickerUltimate", JSON.stringify({
+        score, upgrades, personalBest, totalClicks, currentSkin,
         lastSaveTime: Date.now()
       }));
     }
 
     function loadGame() {
-      const saved = localStorage.getItem("lizardClickerSave");
-      if (saved) {
-        const data = JSON.parse(saved);
-        score = data.score || 0;
+      const data = JSON.parse(localStorage.getItem("lizardClickerUltimate") || "{}");
+      score = data.score || 0;
+      personalBest = data.personalBest || 0;
+      totalClicks = data.totalClicks || 0;
+      currentSkin = data.currentSkin || 0;
 
-        Object.keys(data.upgrades || {}).forEach(k => {
-          if (upgrades[k]) {
-            upgrades[k].owned = data.upgrades[k].owned || 0;
-            upgrades[k].cost = data.upgrades[k].cost || upgrades[k].cost;
-          }
-        });
+      if (data.upgrades) upgrades = data.upgrades;
+      perSecond = upgrades.reduce((sum, u) => sum + u.amount * u.owned, 0);
 
-        perSecond = Object.values(upgrades).reduce((a, u) => a + u.amount * u.owned, 0);
-
-        if (data.lastSaveTime) {
-          const offline = (Date.now() - data.lastSaveTime) / 1000;
-          score += Math.floor(offline * perSecond * 0.65);
-        }
+      if (data.lastSaveTime) {
+        const offline = (Date.now() - data.lastSaveTime) / 1000;
+        score += Math.floor(offline * perSecond * 0.75);
       }
+
+      document.getElementById("lizard").src = skins[currentSkin].src;
       updateScore();
-      for (let i = 1; i <= 3; i++) {
-        document.getElementById(`cost${i}`).textContent = upgrades[i].cost;
-      }
+      renderUpgrades();
+      renderSkins();
+      updateLeaderboard();
     }
 
     function resetGame() {
-      if (confirm("Alles resetten?")) {
-        localStorage.removeItem("lizardClickerSave");
+      if (confirm("Reset ALL progress?")) {
+        localStorage.removeItem("lizardClickerUltimate");
         location.reload();
       }
     }
 
-    setInterval(() => { score += perSecond; updateScore(); }, 1000);
-    setInterval(saveGame, 5000);
+    // Game Loop
+    setInterval(() => {
+      score += perSecond / 10;
+      updateScore();
+      renderUpgrades();
+      renderSkins();
+    }, 100);
+
+    setInterval(() => { saveGame(); updateLeaderboard(); }, 10000);
 
     window.onload = loadGame;
     window.addEventListener("beforeunload", saveGame);

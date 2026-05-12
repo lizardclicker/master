@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lizard Clicker 🦎</title>
+  <style>
+    body { background: #0d1f0a; color: #aaffaa; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+    h1 { margin: 10px 0; font-size: 2.8rem; }
+    #lizard {
+      width: 240px;
+      height: 240px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      filter: drop-shadow(0 0 25px #00ff88);
+    }
+    #lizard:active { transform: scale(0.82); }
+    #score { font-size: 2.7rem; margin: 15px 0; color: #ddffdd; }
+    .shop { margin-top: 40px; max-width: 620px; margin-left: auto; margin-right: auto; }
+    .item {
+      background: #1a2f1a; margin: 12px; padding: 15px 20px; border-radius: 15px;
+      display: flex; justify-content: space-between; align-items: center; border: 1px solid #335533;
+    }
+    button {
+      padding: 12px 25px; background: #00cc00; color: black; font-weight: bold;
+      border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem;
+    }
+    button:disabled { background: #334433; color: #666; cursor: not-allowed; }
+    #reset { margin-top: 30px; background: #cc0000; }
+  </style>
+</head>
+<body>
+  <h1>🦎 Lizard Clicker</h1>
+  <div id="score">0 Lizards</div>
+  <img id="lizard" src="lizzard.png" alt="Lizard" onclick="clickLizard()">
+
+  <p>Klik op de hagedis!</p>
+
+  <div class="shop">
+    <h2>Upgrades</h2>
+    <div class="item">
+      <div><strong>Baby Lizard</strong><br><small>+1 per seconde</small></div>
+      <div><span id="cost1">20</span> lizards <button onclick="buyUpgrade(1)">Koop</button></div>
+    </div>
+    <div class="item">
+      <div><strong>Rock Spot</strong><br><small>+6 per seconde</small></div>
+      <div><span id="cost2">100</span> lizards <button onclick="buyUpgrade(2)">Koop</button></div>
+    </div>
+    <div class="item">
+      <div><strong>Insect Farm</strong><br><small>+25 per seconde</small></div>
+      <div><span id="cost3">450</span> lizards <button onclick="buyUpgrade(3)">Koop</button></div>
+    </div>
+  </div>
+
+  <button id="reset" onclick="resetGame()">Reset Progress</button>
+
+  <!-- === SFX === -->
+  <audio id="clickSound" preload="auto">
+    <source src="lizard-button.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="buySound" preload="auto">
+    <source src="https://freesound.org/data/previews/66/66928_931655-lq.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    let score = 0;
+    let perSecond = 0;
+
+    const clickSound = document.getElementById("clickSound");
+    const buySound = document.getElementById("buySound");
+
+    const upgrades = {
+      1: { amount: 1,  cost: 20,  owned: 0 },
+      2: { amount: 6,  cost: 100, owned: 0 },
+      3: { amount: 25, cost: 450, owned: 0 }
+    };
+
+    function updateScore() {
+      document.getElementById("score").textContent = Math.floor(score).toLocaleString('nl-NL') + " Lizards";
+    }
+
+    function clickLizard() {
+      score += 1;
+      const lizard = document.getElementById("lizard");
+      lizard.style.transform = "scale(1.28)";
+      setTimeout(() => lizard.style.transform = "scale(1)", 90);
+
+      clickSound.currentTime = 0;
+      clickSound.play().catch(() => {});
+      updateScore();
+    }
+
+    function buyUpgrade(id) {
+      let up = upgrades[id];
+      if (score >= up.cost) {
+        score -= up.cost;
+        up.owned++;
+        perSecond += up.amount;
+        up.cost = Math.floor(up.cost * 1.42);
+        document.getElementById(`cost${id}`).textContent = up.cost;
+
+        buySound.currentTime = 0;
+        buySound.play().catch(() => {});
+
+        updateScore();
+        saveGame();
+      }
+    }
+
+    function saveGame() {
+      localStorage.setItem("lizardClickerSave", JSON.stringify({
+        score, 
+        upgrades, 
+        lastSaveTime: Date.now()
+      }));
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem("lizardClickerSave");
+      if (saved) {
+        const data = JSON.parse(saved);
+        score = data.score || 0;
+
+        Object.keys(data.upgrades || {}).forEach(k => {
+          if (upgrades[k]) {
+            upgrades[k].owned = data.upgrades[k].owned || 0;
+            upgrades[k].cost = data.upgrades[k].cost || upgrades[k].cost;
+          }
+        });
+
+        perSecond = Object.values(upgrades).reduce((a, u) => a + u.amount * u.owned, 0);
+
+        if (data.lastSaveTime) {
+          const offline = (Date.now() - data.lastSaveTime) / 1000;
+          score += Math.floor(offline * perSecond * 0.65);
+        }
+      }
+      updateScore();
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`cost${i}`).textContent = upgrades[i].cost;
+      }
+    }
+
+    function resetGame() {
+      if (confirm("Alles resetten?")) {
+        localStorage.removeItem("lizardClickerSave");
+        location.reload();
+      }
+    }
+
+    setInterval(() => { score += perSecond; updateScore(); }, 1000);
+    setInterval(saveGame, 5000);
+
+    window.onload = loadGame;
+    window.addEventListener("beforeunload", saveGame);
+  </script>
+</body>
+</html>

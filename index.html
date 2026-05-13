@@ -138,11 +138,11 @@
     let currentSkin = 0;
 
     const skins = [
-      { id:0, name:"Green Lizard",     emoji:"🦎", price:0,   src:"lizzard.png" },
-      { id:1, name:"Fire Lizard",      emoji:"🔥🦎", price:5000, src:"https://via.placeholder.com/280/FF5500/ffffff?text=Fire+Lizard" },
-      { id:2, name:"Ice Lizard",       emoji:"❄️🦎", price:12000, src:"https://via.placeholder.com/280/88ddff/000000?text=Ice+Lizard" },
-      { id:3, name:"Golden Lizard",    emoji:"✨🦎", price:35000, src:"https://via.placeholder.com/280/ffd700/000000?text=Golden" },
-      { id:4, name:"Diamond Lizard",   emoji:"💎🦎", price:100000, src:"https://via.placeholder.com/280/ffffff/00aaff?text=Diamond" }
+      { id:0, name:"Green Lizard",     emoji:"🦎", price:0,     src:"lizzard.png" },
+      { id:1, name:"Fire Lizard",      emoji:"🔥🦎", price:8000,  src:"vuurlizzard.png" },
+      { id:2, name:"Ice Lizard",       emoji:"❄️🦎", price:18000, src:"ijslizzard.png" },
+      { id:3, name:"Golden Lizard",    emoji:"✨🦎", price:45000, src:"goudelizard.png" },
+      { id:4, name:"Diamond Lizard",   emoji:"💎🦎", price:120000,src:"diamantelizzard.png" }
     ];
 
     let upgrades = [
@@ -262,7 +262,6 @@
       document.getElementById("leaderboard").innerHTML = html;
     }
 
-    // Save & Load
     function saveGame() {
       localStorage.setItem("lizardClickerUltimate", JSON.stringify({
         score, upgrades, personalBest, totalClicks, currentSkin,

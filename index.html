@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -36,7 +36,6 @@
       image-rendering: crisp-edges;
     }
     #lizard:active { transform: scale(0.82); }
-
     .container {
       max-width: 1100px;
       margin: 0 auto;
@@ -53,7 +52,6 @@
       width: 380px;
       box-shadow: 0 10px 30px rgba(0, 255, 100, 0.1);
     }
-
     .shop-item, .skin-item {
       background: #223322;
       margin: 12px 0;
@@ -64,7 +62,6 @@
       align-items: center;
       border-left: 6px solid var(--primary);
     }
-
     button {
       padding: 12px 24px;
       background: linear-gradient(#00ff88, #00cc66);
@@ -77,7 +74,6 @@
     }
     button:hover { transform: translateY(-2px); }
     button:disabled { background: #334433; color: #666; cursor: not-allowed; }
-
     .crawling-lizard {
       position: fixed;
       bottom: 30px;
@@ -87,7 +83,6 @@
       z-index: -1;
       pointer-events: none;
     }
-
     @keyframes crawl {
       0% { transform: translateX(-100px) rotate(0deg); }
       100% { transform: translateX(calc(100vw + 100px)) rotate(10deg); }
@@ -98,20 +93,17 @@
   <h1>🦎 Lizard Clicker</h1>
   <div id="score">0 Lizards</div>
   <img id="lizard" src="lizzard.png" alt="Lizard" onclick="clickLizard()">
-
   <div class="container">
     <!-- Upgrades Shop -->
     <div class="panel">
       <h2>🛒 Upgrades</h2>
       <div id="upgrades"></div>
     </div>
-
     <!-- Skin Shop -->
     <div class="panel">
       <h2>✨ Lizard Skins</h2>
       <div id="skins"></div>
     </div>
-
     <!-- Leaderboard -->
     <div class="panel">
       <h2>🏆 Global Leaderboard</h2>
@@ -119,7 +111,6 @@
       <p><small>Your Best: <strong id="personalBest">0</strong></small></p>
     </div>
   </div>
-
   <button onclick="resetGame()" style="margin-top:30px; background:#aa0000; padding:10px 20px;">Reset Game</button>
 
   <!-- SFX -->
@@ -137,20 +128,23 @@
     let personalBest = 0;
     let currentSkin = 0;
 
+    // 🔥 NIEUWE SKIN TOEGEVOEGD: PIXEL LIZZARD!
     const skins = [
-      { id:0, name:"Green Lizard",     emoji:"🦎", price:0,     src:"lizzard.png" },
-      { id:1, name:"Fire Lizard",      emoji:"🔥🦎", price:8000,  src:"vuurlizzard.png" },
-      { id:2, name:"Ice Lizard",       emoji:"❄️🦎", price:18000, src:"ijslizzard.png" },
-      { id:3, name:"Golden Lizard",    emoji:"✨🦎", price:45000, src:"goudelizard.png" },
-      { id:4, name:"Diamond Lizard",   emoji:"💎🦎", price:120000,src:"diamantelizzard.png" }
+      { id:0, name:"Green Lizard", emoji:"🦎", price:0, src:"lizzard.png" },
+      { id:1, name:"Fire Lizard", emoji:"🔥🦎", price:8000, src:"vuurlizzard.png" },
+      { id:2, name:"Ice Lizard", emoji:"❄️🦎", price:18000, src:"ijslizzard.png" },
+      { id:3, name:"Golden Lizard", emoji:"✨🦎", price:45000, src:"goudelizard.png" },
+      { id:4, name:"Diamond Lizard", emoji:"💎🦎", price:120000, src:"diamantelizzard.png" },
+      { id:5, name:"Pixel Lizzard", emoji:"🕹️🦎", price:3000000
+      , src:"pixel lizzard.png" }
     ];
 
     let upgrades = [
-      { id:1, name:"Baby Lizard",     amount:2,   cost:25,   owned:0 },
-      { id:2, name:"Rock Spot",       amount:8,   cost:150,  owned:0 },
-      { id:3, name:"Insect Farm",     amount:30,  cost:600,  owned:0 },
-      { id:4, name:"Jungle Tree",     amount:90,  cost:2500, owned:0 },
-      { id:5, name:"Lizard Trainer",  amount:280, cost:9000, owned:0 }
+      { id:1, name:"Baby Lizard", amount:2, cost:25, owned:0 },
+      { id:2, name:"Rock Spot", amount:8, cost:150, owned:0 },
+      { id:3, name:"Insect Farm", amount:30, cost:600, owned:0 },
+      { id:4, name:"Jungle Tree", amount:90, cost:2500, owned:0 },
+      { id:5, name:"Lizard Trainer", amount:280, cost:9000, owned:0 }
     ];
 
     const clickSound = document.getElementById("clickSound");
@@ -165,11 +159,10 @@
     function clickLizard() {
       score += 1 + Math.floor(currentSkin * 0.5);
       totalClicks++;
-      
+     
       const lizard = document.getElementById("lizard");
       lizard.style.transform = "scale(1.35)";
       setTimeout(() => lizard.style.transform = "scale(1)", 80);
-
       clickSound.currentTime = 0;
       clickSound.play().catch(() => {});
       updateScore();
@@ -178,15 +171,14 @@
     function buyUpgrade(id) {
       let up = upgrades.find(u => u.id === id);
       if (!up || score < up.cost) return;
-      
+     
       score -= up.cost;
       up.owned++;
       perSecond += up.amount;
       up.cost = Math.floor(up.cost * 1.48);
-
       buySound.currentTime = 0;
       buySound.play().catch(() => {});
-      
+     
       renderUpgrades();
       updateScore();
       saveGame();
@@ -195,14 +187,12 @@
     function buySkin(id) {
       let skin = skins.find(s => s.id === id);
       if (!skin || score < skin.price || currentSkin === id) return;
-
       score -= skin.price;
       currentSkin = id;
       document.getElementById("lizard").src = skin.src;
-
       buySound.currentTime = 0;
       buySound.play().catch(() => {});
-      
+     
       renderSkins();
       updateScore();
       saveGame();
@@ -275,15 +265,12 @@
       personalBest = data.personalBest || 0;
       totalClicks = data.totalClicks || 0;
       currentSkin = data.currentSkin || 0;
-
       if (data.upgrades) upgrades = data.upgrades;
       perSecond = upgrades.reduce((sum, u) => sum + u.amount * u.owned, 0);
-
       if (data.lastSaveTime) {
         const offline = (Date.now() - data.lastSaveTime) / 1000;
         score += Math.floor(offline * perSecond * 0.75);
       }
-
       document.getElementById("lizard").src = skins[currentSkin].src;
       updateScore();
       renderUpgrades();

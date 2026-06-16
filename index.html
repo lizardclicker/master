@@ -44,6 +44,20 @@
     button:hover { transform: translateY(-2px); }
     button:disabled { background: #334433; color: #666; }
     .reset-btn { background: #aa0000; margin: 5px; }
+
+    .mini-game {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #0a1f0a;
+      border: 4px solid #00ff88;
+      border-radius: 15px;
+      padding: 20px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 0 40px #00ff88;
+    }
   </style>
 </head>
 <body>
@@ -70,13 +84,16 @@
     <button onclick="resetGame()" class="reset-btn">Full Reset</button>
   </div>
 
-  <!-- GELUIDEN -->
-  <audio id="clickSound" preload="auto">
-    <source src="lizard-button.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="buySound" preload="auto">
-    <source src="https://freesound.org/data/previews/66/66928_931655-lq.mp3" type="audio/mpeg">
-  </audio>
+  <!-- MINI GAME -->
+  <div id="mini-game" class="mini-game">
+    <h2 style="color:#ffff00">🔥 2X EVENT MINI-GAME</h2>
+    <canvas id="mini-canvas" width="320" height="320" style="border:3px solid #00ff88;border-radius:10px;"></canvas>
+    <p id="mini-status" style="margin:10px 0;color:#ffff00">Eet 8 insecten met pijltjestoetsen!</p>
+    <button onclick="closeMiniGame()" style="background:#aa0000">Sluiten</button>
+  </div>
+
+  <audio id="clickSound" preload="auto"><source src="lizard-button.mp3" type="audio/mpeg"></audio>
+  <audio id="buySound" preload="auto"><source src="https://freesound.org/data/previews/66/66928_931655-lq.mp3" type="audio/mpeg"></audio>
 
   <script>
     let score = 0;
@@ -92,7 +109,7 @@
       { id:2, name:"Ice Lizard", emoji:"❄️🦎", price:28000, multiplier:2, src:"ijslizzard.png" },
       { id:3, name:"Golden Lizard", emoji:"✨🦎", price:65000, multiplier:3, src:"goudelizard.png" },
       { id:4, name:"Diamond Lizard", emoji:"💎🦎", price:150000, multiplier:4, src:"diamantelizzard.png" },
-      { id:5, name:"Pixel Lizard", emoji:"🕹️🦎", price:3000000, multiplier:5, src:"pixel lizzard.png" }
+      { id:5, name:"Pixel Lizard", emoji:"🕹️🦎", price:250000, multiplier:5, src:"pixel lizzard.png" }
     ];
 
     let upgrades = [
@@ -102,6 +119,8 @@
       { id:4, name:"Jungle Tree", amount:90, cost:2500, owned:0 },
       { id:5, name:"Lizard Trainer", amount:280, cost:9000, owned:0 }
     ];
+
+    let miniCtx, miniX = 5, miniY = 5, miniBugX, miniBugY, miniCollected = 0;
 
     const clickSound = document.getElementById("clickSound");
     const buySound = document.getElementById("buySound");
@@ -116,10 +135,8 @@
       if (is2xActive) amount *= 2;
       score += amount;
 
-      // Geluid bij klikken
       clickSound.currentTime = 0;
       clickSound.play().catch(() => {});
-
       updateScore();
     }
 
@@ -130,10 +147,8 @@
       up.owned++;
       perSecond += up.amount;
       up.cost = Math.floor(up.cost * 1.48);
-
       buySound.currentTime = 0;
       buySound.play().catch(() => {});
-
       renderUpgrades();
       updateScore();
       saveGame();
@@ -149,16 +164,12 @@
       }
       currentSkin = id;
       document.getElementById("lizard").src = skin.src;
-
       buySound.currentTime = 0;
       buySound.play().catch(() => {});
-
       renderSkins();
       updateScore();
       saveGame();
     }
-
-    // ... (de rest van de code blijft hetzelfde als vorige versie) ...
 
     function renderUpgrades() {
       let html = '';
@@ -178,6 +189,58 @@
       });
       document.getElementById("skins").innerHTML = html;
     }
+
+    function startMiniGame() {
+      document.getElementById("mini-game").style.display = "block";
+      miniCollected = 0;
+      miniX = 5; miniY = 5;
+      miniBugX = Math.floor(Math.random()*9);
+      miniBugY = Math.floor(Math.random()*9);
+      document.getElementById("mini-status").textContent = "Eet 8 insecten met pijltjestoetsen!";
+      const canvas = document.getElementById("mini-canvas");
+      miniCtx = canvas.getContext("2d");
+      drawMini();
+    }
+
+    function drawMini() {
+      miniCtx.fillStyle = "#0a1f0a";
+      miniCtx.fillRect(0,0,320,320);
+      miniCtx.fillStyle = "#00ff88";
+      miniCtx.fillRect(miniX*32, miniY*32, 28, 28);
+      miniCtx.fillStyle = "#ffcc00";
+      miniCtx.fillRect(miniBugX*32+8, miniBugY*32+8, 16, 16);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (document.getElementById("mini-game").style.display !== "block") return;
+      if (e.key === "ArrowRight") miniX = Math.min(9, miniX+1);
+      if (e.key === "ArrowLeft") miniX = Math.max(0, miniX-1);
+      if (e.key === "ArrowDown") miniY = Math.min(9, miniY+1);
+      if (e.key === "ArrowUp") miniY = Math.max(0, miniY-1);
+
+      if (miniX === miniBugX && miniY === miniBugY) {
+        miniCollected++;
+        miniBugX = Math.floor(Math.random()*10);
+        miniBugY = Math.floor(Math.random()*10);
+        document.getElementById("mini-status").textContent = `Gevangen: ${miniCollected}/8`;
+      }
+      drawMini();
+
+      if (miniCollected >= 8) {
+        is2xActive = true;
+        document.getElementById("event").innerHTML = "🔥 <b>2X EVENT ACTIEF VOOR 60 SECONDEN!</b>";
+        setTimeout(() => { is2xActive = false; document.getElementById("event").innerHTML = ""; }, 60000);
+        document.getElementById("mini-game").style.display = "none";
+      }
+    });
+
+    function closeMiniGame() {
+      document.getElementById("mini-game").style.display = "none";
+    }
+
+    function resetLizards() { if(confirm("Reset score?")) { score = 0; updateScore(); }}
+    function resetUpgrades() { if(confirm("Reset upgrades?")) { upgrades.forEach(u => u.owned = 0); perSecond = 0; renderUpgrades(); saveGame(); }}
+    function resetGame() { if(confirm("Full reset?")) { localStorage.removeItem("lizardClickerUltimate"); location.reload(); }}
 
     function saveGame() {
       localStorage.setItem("lizardClickerUltimate", JSON.stringify({score, upgrades, personalBest, currentSkin, ownedSkins, lastSaveTime: Date.now()}));
